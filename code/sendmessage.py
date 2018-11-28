@@ -11,6 +11,7 @@ from email.mime.image import MIMEImage
 from email.mime.audio import MIMEAudio
 from email.mime.base import MIMEBase
 import csv
+import codecs
 
 SCOPES = 'https://www.googleapis.com/auth/gmail.send'
 CLIENT_SECRET_FILE = 'client_secret.json'
@@ -29,7 +30,7 @@ def get_credentials():
         flow = client.flow_from_clientsecrets(CLIENT_SECRET_FILE, SCOPES)
         flow.user_agent = APPLICATION_NAME
         credentials = tools.run_flow(flow, store)
-        print('Storing credentials to ' + credential_path)
+        print(('Storing credentials to ' + credential_path))
     return credentials
 
 def SendMessage(sender, to, subject, msgHtml, msgPlain, attachmentFile=None):
@@ -46,10 +47,10 @@ def SendMessage(sender, to, subject, msgHtml, msgPlain, attachmentFile=None):
 def SendMessageInternal(service, user_id, message):
     try:
         message = (service.users().messages().send(userId=user_id, body=message).execute())
-        print('Message Id: %s' % message['id'])
+        print(('Message Id: %s' % message['id']))
         return message
     except errors.HttpError as error:
-        print('An error occurred: %s' % error)
+        print(('An error occurred: %s' % error))
         return "Error"
     return "OK"
 
@@ -60,7 +61,10 @@ def CreateMessageHtml(sender, to, subject, msgHtml, msgPlain):
     msg['To'] = to
     msg.attach(MIMEText(msgPlain, 'plain'))
     msg.attach(MIMEText(msgHtml, 'html'))
-    return {'raw': base64.urlsafe_b64encode(msg.as_string())}
+
+    b64_bytes = base64.urlsafe_b64encode(msg.as_bytes())
+    b64_string = b64_bytes.decode()
+    return {'raw': b64_string}
 
 def createMessageWithAttachment(
     sender, to, subject, msgHtml, msgPlain, attachmentFile):
@@ -91,7 +95,7 @@ def createMessageWithAttachment(
 
     message.attach(messageA)
 
-    print("create_message_with_attachment: file:", attachmentFile)
+    print(("create_message_with_attachment: file:", attachmentFile))
     content_type, encoding = mimetypes.guess_type(attachmentFile)
 
     if content_type is None or encoding is not None:
@@ -111,27 +115,32 @@ def createMessageWithAttachment(
     msg.add_header('Content-Disposition', 'attachment', filename=filename)
     message.attach(msg)
 
-    return {'raw': base64.urlsafe_b64encode(message.as_string())}
+    b64_bytes = base64.urlsafe_b64encode(message.as_bytes())
+    b64_string = b64_bytes.decode()
+    return {'raw': b64_string}
 
 def sendmail(attribute):
     first_name = attribute[0]
     last_name = attribute[1]
     email = attribute[2]
-    print('Sending email to %s' % (str(email)))
+    print(('Sending email to %s' % (str(email))))
 
     to = email
     sender = "you.email"
-    subject = "subject"
+    subject = "Test Mail"
     msgPlain = ""
-    msgHtml = "Hi "+ first_name +",<br/>This is a test email"
+    f = codecs.open("test_mail.html", 'r')
+    msgHtml = f.read()
+    msgHtml = msgHtml.replace('[first_name]', first_name)
+    msgHtml = msgHtml.replace('[last_name]', last_name)
+    msgHtml = msgHtml.replace('[sender]', "yoyo")
     SendMessage(sender, to, subject, msgHtml, msgPlain)
 
-
 def main():
-    with open("file.csv", "rb") as file:
+    with open("file.csv", "rt") as file:
         msg_reader = csv.reader(file)
-        msg_reader.next()
-        map(lambda x: sendmail(x), msg_reader)
+        next(msg_reader)
+        list(map(lambda x: sendmail(x), msg_reader))
 
 
     # # Send message with attachment:
