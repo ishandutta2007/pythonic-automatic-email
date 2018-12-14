@@ -96,3 +96,10 @@ Final Note
 Before using this codes, first just provide a simple ``.csv`` file or whatever file you want to parse, and use only your emails to make sure nothing is messed up. because the last thing you want is to send wrong emails to multiple people.
 
 
+
+### Support:
+
+If you want the good work to continue please support us on
+
+* [PAYPAL](https://www.paypal.me/ishandutta2007)
+* [BITCOIN ADDRESS: 3LZazKXG18Hxa3LLNAeKYZNtLzCxpv1LyD](https://www.coinbase.com/join/5a8e4a045b02c403bc3a9c0c)
